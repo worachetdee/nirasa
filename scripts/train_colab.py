@@ -20,7 +20,7 @@ os.chdir("/content/nirasa")
 MODEL_NAME = "Qwen/Qwen2.5-7B"
 DATA_BIN = "data/processed/th_wiki_qwen.bin"
 DATA_IDX = "data/processed/th_wiki_qwen.idx"
-OUTPUT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th"
+OUTPUT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th-v2"
 
 MAX_SEQ_LEN = 512
 BATCH_SIZE = 2
@@ -55,25 +55,23 @@ class MemmapDataset(Dataset):
 
         self.total_tokens = total_tokens
         self.data = np.memmap(bin_path, dtype=np.uint32, mode="r", shape=(total_tokens,))
-        self.num_samples = max(0, (total_tokens - 1) // seq_len)
+        self.num_samples = max(0, total_tokens // seq_len)
 
     def __len__(self) -> int:
         return self.num_samples
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         start = idx * self.seq_len
-        end = min(start + self.seq_len + 1, self.total_tokens)
+        end = min(start + self.seq_len, self.total_tokens)
 
         tokens = torch.from_numpy(self.data[start:end].astype(np.int64))
-        input_ids = tokens[:-1]
-        labels = tokens[1:]
 
-        if len(input_ids) < self.seq_len:
-            pad_len = self.seq_len - len(input_ids)
-            input_ids = torch.cat([input_ids, torch.zeros(pad_len, dtype=torch.long)])
-            labels = torch.cat([labels, torch.full((pad_len,), -100, dtype=torch.long)])
+        if len(tokens) < self.seq_len:
+            pad_len = self.seq_len - len(tokens)
+            tokens = torch.cat([tokens, torch.zeros(pad_len, dtype=torch.long)])
 
-        return {"input_ids": input_ids, "labels": labels}
+        # HuggingFace CausalLM shifts labels internally, so pass same tensor for both
+        return {"input_ids": tokens, "labels": tokens.clone()}
 
 
 def get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps, min_lr_ratio=0.1):

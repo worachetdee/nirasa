@@ -9,7 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
 MODEL_NAME = "Qwen/Qwen2.5-7B"
-CHECKPOINT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th"
+CHECKPOINT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th-v2"
 
 TEST_PROMPTS = [
     "ประเทศไทยมี",
