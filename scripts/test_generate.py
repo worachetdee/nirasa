@@ -13,7 +13,7 @@ from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 MODEL_NAME = "Qwen/Qwen2.5-7B"
-CHECKPOINT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th"
+CHECKPOINT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th/step_1000"
 
 # Thai test prompts
 TEST_PROMPTS = [
