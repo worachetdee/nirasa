@@ -30,7 +30,7 @@ dependencies = [
     "peft>=0.7",
     "fastapi>=0.104",
     "uvicorn>=0.24",
-    "pythainlp",
+    "pythainlp>=5.0",
     "datasketch>=1.6",
     "datasets>=2.16",
     "numpy",
