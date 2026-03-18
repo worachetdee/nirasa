@@ -17,13 +17,22 @@ Build the best open-source Thai language model by continued pretraining of Qwen2
 - [x] Smoke test for validation
 
 ### Phase 2: Data Collection (In Progress)
-- [x] Thai Wikipedia — 159K docs, 939 MB
-- [x] mC4 Thai — 500K docs, 2.8 GB
-- [x] Wisesight sentiment — 16K docs, 5 MB
-- [ ] OSCAR Thai — ~12 GB (needs HF login, gated)
-- [ ] CC-100 Thai — ~5 GB
-- [ ] Prachatai-67K — ~300 MB (journalism)
-- [ ] Wongnai — ~40 MB (reviews, colloquial)
+
+**Tier 1 — Core (large-scale):**
+- [x] Thai Wikipedia — 159K docs, 939 MB (CC BY-SA)
+- [x] mC4 Thai — 500K docs, 2.8 GB (ODC-BY)
+- [ ] Mangosteen Web — cleaned Common Crawl (permissive)
+- [ ] Mangosteen Curated — CC/public domain sources
+
+**Tier 2 — Curated (CC / Public Domain):**
+- [ ] Thai Law corpus (public domain)
+- [ ] Thai Government corpus (public domain)
+- [ ] Thai Constitution (public domain)
+- [ ] Thai Open Data (public domain)
+- [ ] Thai Old Books (public domain/CC)
+
+**Tier 3 — Domain-specific:**
+- [x] Wisesight sentiment — 16K docs, 5 MB (CC0)
 
 ### Phase 3: Data Pipeline (In Progress)
 - [x] Clean (NFKC, HTML/URL removal, Thai ratio filter)
@@ -84,11 +93,21 @@ Nirasa-72B  → Qwen2.5-72B base, 8x H100 (~$5K-10K)
 4. **Thai-English bilingual** — Mixed training on Thai + English to maintain English capability.
 5. **Full fine-tuning vs LoRA** — Compare quality at 7B scale when budget allows.
 
-### Additional Data Sources to Explore
-- Thai National Corpus (TNC) — academic, may need permission
-- ThaiGov gazette — government documents (public domain)
-- Chula Thai Archives — university research texts
-- Thai social media (Twitter/X, Pantip) — needs scraping
+### Data Strategy
+
+All training data is sourced from legally clear origins:
+
+| License Type | Sources |
+|-------------|---------|
+| **Public Domain** | Thai Law, Constitution, Government corpus, Royal Gazette, Open Data |
+| **CC0** | Wisesight, Mangosteen annotations |
+| **CC BY-SA** | Wikipedia, Wikisource |
+| **Standard web crawl** | mC4, Mangosteen Web (Common Crawl — same basis as GPT, LLaMA, etc.) |
+| **Apache 2.0** | Prachatai-67K (if added later) |
+
+Key resource: [Mangosteen](https://github.com/vistec-AI/Mangosteen) by VISTEC — curated 47B token Thai corpus with only CC/public domain non-web sources.
+
+Also see: [PyThaiNLP pretrained datasets collection](https://huggingface.co/collections/pythainlp/datasets-for-pretrained-thai-llm-65db96ab730386b492889a98) — 25 curated Thai datasets on HuggingFace.
 
 ---
 

@@ -1,18 +1,28 @@
-"""Download multiple Thai text corpora for training."""
-import os
+"""Download all Thai training data from legally clear sources.
+
+Data sources organized by tier:
+  Tier 1 (Core): Large-scale, high-quality
+  Tier 2 (Curated): Smaller but legally pristine (CC/public domain)
+  Tier 3 (Domain): Specialized domains for diversity
+"""
 import json
+import os
 import time
+import sys
 
 os.makedirs("data/raw", exist_ok=True)
 
-def save_jsonl(dataset, output_path, text_field="text", max_docs=None):
+from datasets import load_dataset
+
+
+def save_jsonl(dataset, output_path, text_field="text", max_docs=None, min_len=50):
     """Save dataset to JSONL format."""
     count = 0
     with open(output_path, "w") as f:
         for row in dataset:
             text = row.get(text_field, "")
-            if text and len(text.strip()) > 50:
-                f.write(json.dumps({"id": f"doc_{count}", "text": text}, ensure_ascii=False) + "\n")
+            if text and len(text.strip()) > min_len:
+                f.write(json.dumps({"id": f"doc_{count}", "text": text.strip()}, ensure_ascii=False) + "\n")
                 count += 1
                 if max_docs and count >= max_docs:
                     break
@@ -21,101 +31,137 @@ def save_jsonl(dataset, output_path, text_field="text", max_docs=None):
     return count
 
 
-from datasets import load_dataset
+def report_size(path):
+    if os.path.exists(path):
+        size_mb = os.path.getsize(path) / (1024 * 1024)
+        lines = sum(1 for _ in open(path))
+        print(f"  -> {lines:,} docs, {size_mb:.1f} MB")
+        return lines, size_mb
+    return 0, 0
 
-# ============================================================
-# 1. Thai Wikipedia (~150K articles)
-# ============================================================
-print("=" * 50)
-print("[1/5] Thai Wikipedia")
-print("=" * 50)
-t0 = time.time()
-try:
+
+def download_source(name, fn):
+    print(f"\n{'='*60}")
+    print(f"  {name}")
+    print(f"{'='*60}")
+    t0 = time.time()
+    try:
+        fn()
+        print(f"  Time: {time.time()-t0:.0f}s")
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+
+# =============================================================
+# TIER 1: Core large-scale datasets
+# =============================================================
+print("\n" + "#"*60)
+print("# TIER 1: Core datasets")
+print("#"*60)
+
+def dl_wikipedia():
     ds = load_dataset("wikimedia/wikipedia", "20231101.th", split="train")
     count = save_jsonl(ds, "data/raw/th_wiki.jsonl")
-    print(f"  Saved {count:,} docs ({time.time()-t0:.0f}s)")
-except Exception as e:
-    print(f"  FAILED: {e}")
+    report_size("data/raw/th_wiki.jsonl")
 
-# ============================================================
-# 2. CulturaX Thai (cleaned Common Crawl + OSCAR)
-# ============================================================
-print()
-print("=" * 50)
-print("[2/5] CulturaX Thai (500K sample)")
-print("=" * 50)
-t0 = time.time()
-try:
-    ds = load_dataset("uonlp/CulturaX", "th", split="train", streaming=True)
-    count = save_jsonl(ds, "data/raw/th_culturax.jsonl", max_docs=500000)
-    print(f"  Saved {count:,} docs ({time.time()-t0:.0f}s)")
-except Exception as e:
-    print(f"  FAILED: {e}")
-
-# ============================================================
-# 3. mC4 Thai
-# ============================================================
-print()
-print("=" * 50)
-print("[3/5] mC4 Thai (500K sample)")
-print("=" * 50)
-t0 = time.time()
-try:
+def dl_mc4():
     ds = load_dataset("allenai/c4", "th", split="train", streaming=True)
     count = save_jsonl(ds, "data/raw/th_mc4.jsonl", max_docs=500000)
-    print(f"  Saved {count:,} docs ({time.time()-t0:.0f}s)")
-except Exception as e:
-    print(f"  FAILED: {e}")
+    report_size("data/raw/th_mc4.jsonl")
 
-# ============================================================
-# 4. Thai National Corpus (Wisesight - social media)
-# ============================================================
-print()
-print("=" * 50)
-print("[4/5] Wisesight-1000 Thai social media")
-print("=" * 50)
-t0 = time.time()
-try:
-    ds = load_dataset("wisesight/wisesight-1000", split="train")
-    count = save_jsonl(ds, "data/raw/th_wisesight.jsonl", text_field="texts")
-    print(f"  Saved {count:,} docs ({time.time()-t0:.0f}s)")
-except Exception as e:
-    print(f"  FAILED: {e}")
+def dl_mangosteen_web():
+    """WangchanLION web corpus — Mangosteen's cleaned Common Crawl for Thai."""
+    ds = load_dataset("aisingapore/WangchanLION-Web", split="train", streaming=True)
+    count = save_jsonl(ds, "data/raw/th_mangosteen_web.jsonl", max_docs=500000)
+    report_size("data/raw/th_mangosteen_web.jsonl")
 
-# ============================================================
-# 5. Thai Textbook QA (iApp)
-# ============================================================
-print()
-print("=" * 50)
-print("[5/5] iApp Thai Wikipedia QA")
-print("=" * 50)
-t0 = time.time()
-try:
-    ds = load_dataset("iapp_wiki_qa_squad", split="train", trust_remote_code=True)
+def dl_mangosteen_curated():
+    """WangchanLION curated — Mangosteen's non-web Thai sources (CC/public domain)."""
+    ds = load_dataset("aisingapore/WangchanLION-Curated", split="train", streaming=True)
+    count = save_jsonl(ds, "data/raw/th_mangosteen_curated.jsonl", max_docs=500000)
+    report_size("data/raw/th_mangosteen_curated.jsonl")
+
+download_source("[1/10] Thai Wikipedia (CC BY-SA)", dl_wikipedia)
+download_source("[2/10] mC4 Thai (ODC-BY)", dl_mc4)
+download_source("[3/10] Mangosteen Web — cleaned Common Crawl (permissive)", dl_mangosteen_web)
+download_source("[4/10] Mangosteen Curated — CC/public domain (permissive)", dl_mangosteen_curated)
+
+
+# =============================================================
+# TIER 2: Curated CC / Public Domain datasets
+# =============================================================
+print("\n" + "#"*60)
+print("# TIER 2: Curated (CC / Public Domain)")
+print("#"*60)
+
+def dl_thai_law():
+    ds = load_dataset("pythainlp/thailaw-v1.0", split="train")
+    count = save_jsonl(ds, "data/raw/th_law.jsonl")
+    report_size("data/raw/th_law.jsonl")
+
+def dl_thai_gov():
+    ds = load_dataset("pythainlp/thaigov-v2-corpus-31032024", split="train")
+    count = save_jsonl(ds, "data/raw/th_gov.jsonl")
+    report_size("data/raw/th_gov.jsonl")
+
+def dl_thai_constitution():
+    ds = load_dataset("pythainlp/thai-constitution-corpus", split="train")
+    count = save_jsonl(ds, "data/raw/th_constitution.jsonl")
+    report_size("data/raw/th_constitution.jsonl")
+
+def dl_thai_open_data():
+    ds = load_dataset("pythainlp/thai-open-data-text-v1", split="train")
+    count = save_jsonl(ds, "data/raw/th_opendata.jsonl")
+    report_size("data/raw/th_opendata.jsonl")
+
+def dl_thai_oldbooks():
+    ds = load_dataset("pythainlp/thai-oldbooks", split="train")
+    count = save_jsonl(ds, "data/raw/th_oldbooks.jsonl")
+    report_size("data/raw/th_oldbooks.jsonl")
+
+download_source("[5/10] Thai Law (public domain)", dl_thai_law)
+download_source("[6/10] Thai Government corpus (public domain)", dl_thai_gov)
+download_source("[7/10] Thai Constitution (public domain)", dl_thai_constitution)
+download_source("[8/10] Thai Open Data (public domain)", dl_thai_open_data)
+download_source("[9/10] Thai Old Books (public domain/CC)", dl_thai_oldbooks)
+
+
+# =============================================================
+# TIER 3: Domain-specific datasets
+# =============================================================
+print("\n" + "#"*60)
+print("# TIER 3: Domain-specific")
+print("#"*60)
+
+def dl_wisesight():
+    ds = load_dataset("wisesight_sentiment", split="train")
     count = 0
-    with open("data/raw/th_iapp_qa.jsonl", "w") as f:
+    with open("data/raw/th_wisesight.jsonl", "w") as f:
         for row in ds:
-            context = row.get("context", "")
-            if context and len(context.strip()) > 50:
-                f.write(json.dumps({"id": f"doc_{count}", "text": context}, ensure_ascii=False) + "\n")
+            text = row.get("texts", "")
+            if text and len(text.strip()) > 20:
+                f.write(json.dumps({"id": f"ws_{count}", "text": text.strip()}, ensure_ascii=False) + "\n")
                 count += 1
-    print(f"  Saved {count:,} docs ({time.time()-t0:.0f}s)")
-except Exception as e:
-    print(f"  FAILED: {e}")
+    report_size("data/raw/th_wisesight.jsonl")
 
-# ============================================================
+download_source("[10/10] Wisesight Sentiment — social media (CC0)", dl_wisesight)
+
+
+# =============================================================
 # Summary
-# ============================================================
-print()
-print("=" * 50)
-print("Download Summary")
-print("=" * 50)
+# =============================================================
+print("\n" + "="*60)
+print("DOWNLOAD SUMMARY")
+print("="*60)
 total_size = 0
+total_docs = 0
 for fname in sorted(os.listdir("data/raw")):
-    if fname.endswith(".jsonl") or fname.endswith(".txt"):
+    if fname.endswith(".jsonl"):
         path = os.path.join("data/raw", fname)
         size_mb = os.path.getsize(path) / (1024 * 1024)
         lines = sum(1 for _ in open(path))
         total_size += size_mb
-        print(f"  {fname}: {size_mb:.1f} MB, {lines:,} docs")
-print(f"  TOTAL: {total_size:.1f} MB")
+        total_docs += lines
+        print(f"  {fname:<35s} {size_mb:>8.1f} MB  {lines:>10,} docs")
+print(f"  {'─'*55}")
+print(f"  {'TOTAL':<35s} {total_size:>8.1f} MB  {total_docs:>10,} docs")

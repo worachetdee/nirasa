@@ -27,17 +27,21 @@ Thai is underserved in the open-source LLM space. While Japanese has Swallow, PL
 |--------|------|------|------|
 | Thai Wikipedia | Encyclopedia | 159K | 939 MB |
 | mC4 Thai | Web text | 500K | 2.8 GB |
-| Wisesight | Social media | 16K | 5 MB |
-| **Total (current)** | | **675K** | **3.7 GB** |
+| Wisesight | Social media (CC0) | 16K | 5 MB |
 
-Planned additions:
+**Curated legal sources (CC / Public Domain):**
 
-| Source | Type | Est. Size |
-|--------|------|-----------|
-| OSCAR Thai | Web crawl | ~12 GB |
-| CC-100 Thai | Deduplicated web | ~5 GB |
-| Prachatai-67K | News journalism | ~300 MB |
-| Wongnai | Restaurant reviews | ~40 MB |
+| Source | Type | License |
+|--------|------|---------|
+| Mangosteen Web | Cleaned Common Crawl for Thai | Permissive |
+| Mangosteen Curated | Non-web Thai sources | CC / Public Domain |
+| Thai Law corpus | Legal statutes | Public Domain |
+| Thai Gov corpus | Government documents | Public Domain |
+| Thai Constitution | Constitutional texts | Public Domain |
+| Thai Open Data | Government open data | Public Domain |
+| Thai Old Books | Classical literature | Public Domain / CC |
+
+All data sources are either public domain, Creative Commons licensed, or standard web crawl corpora used by major LLMs. See [Mangosteen](https://github.com/vistec-AI/Mangosteen) by VISTEC for the curated Thai corpus methodology.
 
 ### Data Pipeline
 
