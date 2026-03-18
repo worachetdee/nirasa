@@ -81,10 +81,10 @@ def dl_mangosteen_curated():
     count = save_jsonl(ds, "data/raw/th_mangosteen_curated.jsonl", max_docs=500000)
     report_size("data/raw/th_mangosteen_curated.jsonl")
 
-download_source("[1/10] Thai Wikipedia (CC BY-SA)", dl_wikipedia)
-download_source("[2/10] mC4 Thai (ODC-BY)", dl_mc4)
-download_source("[3/10] Mangosteen Web — cleaned Common Crawl (permissive)", dl_mangosteen_web)
-download_source("[4/10] Mangosteen Curated — CC/public domain (permissive)", dl_mangosteen_curated)
+download_source("[1/14] Thai Wikipedia (CC BY-SA)", dl_wikipedia)
+download_source("[2/14] mC4 Thai (ODC-BY)", dl_mc4)
+download_source("[3/14] Mangosteen Web — cleaned Common Crawl (permissive)", dl_mangosteen_web)
+download_source("[4/14] Mangosteen Curated — CC/public domain (permissive)", dl_mangosteen_curated)
 
 
 # =============================================================
@@ -119,18 +119,41 @@ def dl_thai_oldbooks():
     count = save_jsonl(ds, "data/raw/th_oldbooks.jsonl")
     report_size("data/raw/th_oldbooks.jsonl")
 
-download_source("[5/10] Thai Law (public domain)", dl_thai_law)
-download_source("[6/10] Thai Government corpus (public domain)", dl_thai_gov)
-download_source("[7/10] Thai Constitution (public domain)", dl_thai_constitution)
-download_source("[8/10] Thai Open Data (public domain)", dl_thai_open_data)
-download_source("[9/10] Thai Old Books (public domain/CC)", dl_thai_oldbooks)
+download_source("[5/14] Thai Law (public domain)", dl_thai_law)
+download_source("[6/14] Thai Government corpus (public domain)", dl_thai_gov)
+download_source("[7/14] Thai Constitution (public domain)", dl_thai_constitution)
+download_source("[8/14] Thai Open Data (public domain)", dl_thai_open_data)
+download_source("[9/14] Thai Old Books (public domain/CC)", dl_thai_oldbooks)
 
 
 # =============================================================
-# TIER 3: Domain-specific datasets
+# TIER 3: Additional large-scale datasets
 # =============================================================
 print("\n" + "#"*60)
-print("# TIER 3: Domain-specific")
+print("# TIER 3: Additional large-scale (web crawl)")
+print("#"*60)
+
+def dl_oscar():
+    """OSCAR Thai — large web crawl, gated (needs HF login)."""
+    ds = load_dataset("oscar-corpus/OSCAR-2301", "th", split="train", streaming=True)
+    count = save_jsonl(ds, "data/raw/th_oscar.jsonl", max_docs=500000)
+    report_size("data/raw/th_oscar.jsonl")
+
+def dl_cc100():
+    """CC-100 Thai — deduplicated web crawl used to train XLM-R."""
+    ds = load_dataset("cc100", lang="th", split="train", streaming=True)
+    count = save_jsonl(ds, "data/raw/th_cc100.jsonl", max_docs=500000)
+    report_size("data/raw/th_cc100.jsonl")
+
+download_source("[10/14] OSCAR Thai — web crawl (CC0 metadata, gated)", dl_oscar)
+download_source("[11/14] CC-100 Thai — deduplicated web (no IP claims)", dl_cc100)
+
+
+# =============================================================
+# TIER 4: Domain-specific datasets
+# =============================================================
+print("\n" + "#"*60)
+print("# TIER 4: Domain-specific")
 print("#"*60)
 
 def dl_wisesight():
@@ -144,7 +167,35 @@ def dl_wisesight():
                 count += 1
     report_size("data/raw/th_wisesight.jsonl")
 
-download_source("[10/10] Wisesight Sentiment — social media (CC0)", dl_wisesight)
+def dl_prachatai():
+    """Prachatai-67K — Thai news articles (Apache 2.0)."""
+    ds = load_dataset("PyThaiNLP/prachathai67k", split="train")
+    count = 0
+    with open("data/raw/th_prachatai.jsonl", "w") as f:
+        for row in ds:
+            title = row.get("title", "")
+            body = row.get("body_text", row.get("text", ""))
+            text = f"{title}\n{body}" if title and body else (body or title or "")
+            if text and len(text.strip()) > 50:
+                f.write(json.dumps({"id": f"pt_{count}", "text": text.strip()}, ensure_ascii=False) + "\n")
+                count += 1
+    report_size("data/raw/th_prachatai.jsonl")
+
+def dl_wongnai():
+    """Wongnai reviews — colloquial Thai (LGPL-3.0)."""
+    ds = load_dataset("Wongnai/wongnai_reviews", split="train")
+    count = 0
+    with open("data/raw/th_wongnai.jsonl", "w") as f:
+        for row in ds:
+            text = row.get("review_body", row.get("text", ""))
+            if text and len(text.strip()) > 30:
+                f.write(json.dumps({"id": f"wn_{count}", "text": text.strip()}, ensure_ascii=False) + "\n")
+                count += 1
+    report_size("data/raw/th_wongnai.jsonl")
+
+download_source("[12/14] Wisesight Sentiment — social media (CC0)", dl_wisesight)
+download_source("[13/14] Prachatai-67K — news journalism (Apache 2.0)", dl_prachatai)
+download_source("[14/14] Wongnai Reviews — colloquial/opinion (LGPL-3.0)", dl_wongnai)
 
 
 # =============================================================
