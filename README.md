@@ -149,12 +149,33 @@ Nirasa-72B  →  Qwen2.5-72B base, 8x H100 (~$5K-10K).
 
 Same codebase, same pipeline — just change the model config and add GPUs.
 
-## Research Directions
+## Research Questions
 
-1. **Thai tokenizer comparison** — SentencePiece BPE vs morpheme-aware (PyThaiNLP) vs character-level
-2. **Cross-lingual transfer** — Does Qwen's Chinese knowledge help Thai? Compare base models.
-3. **Data efficiency** — How much Thai data is needed to beat existing models?
-4. **Thai-English bilingual** — Maintain English while improving Thai
+### RQ1: Does a Chinese-trained base model transfer better to Thai?
+
+Thai is linguistically closer to Chinese than to English — both are tonal, analytic (no inflection), SVO word order, no spaces between words, and share thousands of loanwords. We hypothesize that a Chinese-heavy base model (Qwen) transfers better to Thai than English-heavy models (LLaMA, Mistral).
+
+| Feature | Thai | Chinese | Japanese | English |
+|---------|------|---------|----------|---------|
+| Tonal | 5 tones | 4 tones | No | No |
+| Word order | SVO | SVO | SOV | SVO |
+| Word boundaries | No spaces | No spaces | No spaces | Spaces |
+| Grammar | Analytic | Analytic | Agglutinative | Fusional |
+| Shared loanwords | — | Many | Some | Few |
+
+**Experiment:** Run identical continued pretraining on Qwen2.5-7B vs LLaMA 3.1-8B vs Mistral-7B. Compare loss curves and downstream benchmark scores. No one has done this systematic comparison for Thai.
+
+### RQ2: Thai tokenizer design
+
+SentencePiece BPE vs morpheme-aware tokenization (PyThaiNLP) vs character-level. Thai's lack of word boundaries makes tokenizer design critical. Compare fertility, downstream task performance, and training efficiency.
+
+### RQ3: Data efficiency for low-resource adaptation
+
+How much Thai data is actually needed to meaningfully improve a multilingual model? Plot loss and benchmark scores at 100M, 500M, 1B, 5B, and 10B tokens. This has direct implications for all low-resource languages.
+
+### RQ4: Thai-English bilingual training
+
+Does continued pretraining on Thai degrade English performance? Can mixed Thai-English training maintain both? Measure cross-lingual transfer effects.
 
 ## Sister Project
 
