@@ -9,7 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
 MODEL_NAME = "Qwen/Qwen2.5-7B"
-CHECKPOINT = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th/step_1000"
+CHECKPOINT = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th-v2/step_1000"
 
 print("Loading tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
