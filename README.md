@@ -29,19 +29,26 @@ Thai is underserved in the open-source LLM space. While Japanese has Swallow, PL
 | mC4 Thai | Web text | 500K | 2.8 GB |
 | Wisesight | Social media (CC0) | 16K | 5 MB |
 
-**Curated legal sources (CC / Public Domain):**
+**14 total sources organized in 4 tiers:**
 
-| Source | Type | License |
-|--------|------|---------|
-| Mangosteen Web | Cleaned Common Crawl for Thai | Permissive |
-| Mangosteen Curated | Non-web Thai sources | CC / Public Domain |
-| Thai Law corpus | Legal statutes | Public Domain |
-| Thai Gov corpus | Government documents | Public Domain |
-| Thai Constitution | Constitutional texts | Public Domain |
-| Thai Open Data | Government open data | Public Domain |
-| Thai Old Books | Classical literature | Public Domain / CC |
+| Tier | Source | License | Type |
+|------|--------|---------|------|
+| **1. Core** | Thai Wikipedia | CC BY-SA | Encyclopedia |
+| | mC4 Thai | ODC-BY | Web text |
+| | Mangosteen Web | Permissive | Cleaned Common Crawl |
+| | Mangosteen Curated | CC / Public Domain | Non-web Thai sources |
+| **2. Curated** | Thai Law | Public Domain | Legal statutes |
+| | Thai Gov corpus | Public Domain | Government documents |
+| | Thai Constitution | Public Domain | Constitutional texts |
+| | Thai Open Data | Public Domain | Government open data |
+| | Thai Old Books | Public Domain / CC | Classical literature |
+| **3. Web crawl** | OSCAR Thai | CC0 (gated) | Large web crawl (~12 GB) |
+| | CC-100 Thai | No IP claims | Deduplicated web |
+| **4. Domain** | Wisesight | CC0 | Social media |
+| | Prachatai-67K | Apache 2.0 | News journalism |
+| | Wongnai | LGPL-3.0 | Restaurant reviews |
 
-All data sources are either public domain, Creative Commons licensed, or standard web crawl corpora used by major LLMs. See [Mangosteen](https://github.com/vistec-AI/Mangosteen) by VISTEC for the curated Thai corpus methodology.
+All data sources are either public domain, Creative Commons licensed, or standard web crawl corpora used by major LLMs (GPT, LLaMA, BLOOM, XLM-R). See [Mangosteen](https://github.com/vistec-AI/Mangosteen) by VISTEC and the [PyThaiNLP pretrained datasets collection](https://huggingface.co/collections/pythainlp/datasets-for-pretrained-thai-llm-65db96ab730386b492889a98) for curated sources.
 
 ### Data Pipeline
 

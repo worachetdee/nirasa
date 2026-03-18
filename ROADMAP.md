@@ -31,8 +31,14 @@ Build the best open-source Thai language model by continued pretraining of Qwen2
 - [ ] Thai Open Data (public domain)
 - [ ] Thai Old Books (public domain/CC)
 
-**Tier 3 — Domain-specific:**
+**Tier 3 — Additional web crawl:**
+- [ ] OSCAR Thai — ~12 GB (CC0, gated — needs HF login)
+- [ ] CC-100 Thai — ~5 GB (no IP claims)
+
+**Tier 4 — Domain-specific:**
 - [x] Wisesight sentiment — 16K docs, 5 MB (CC0)
+- [ ] Prachatai-67K — news journalism (Apache 2.0)
+- [ ] Wongnai Reviews — colloquial/opinion (LGPL-3.0)
 
 ### Phase 3: Data Pipeline (In Progress)
 - [x] Clean (NFKC, HTML/URL removal, Thai ratio filter)
