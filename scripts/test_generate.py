@@ -1,21 +1,16 @@
-"""Test text generation with base Qwen and LoRA-adapted model."""
-
-from __future__ import annotations
-
+"""Test text generation comparing base Qwen vs Nirasa (LoRA-adapted)."""
 import os
-import sys
+import torch
 from pathlib import Path
 
 os.chdir("/content/nirasa")
 
-import torch
-from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
 
 MODEL_NAME = "Qwen/Qwen2.5-7B"
 CHECKPOINT_DIR = "/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th"
 
-# Thai test prompts
 TEST_PROMPTS = [
     "ประเทศไทยมี",
     "กรุงเทพมหานครเป็น",
@@ -25,12 +20,10 @@ TEST_PROMPTS = [
 ]
 
 
-def find_latest_checkpoint(checkpoint_dir: str) -> str | None:
-    """Find the latest checkpoint by step number."""
+def find_latest_checkpoint(checkpoint_dir):
     ckpt_path = Path(checkpoint_dir)
     if not ckpt_path.exists():
         return None
-
     checkpoints = []
     for d in ckpt_path.iterdir():
         if d.is_dir() and d.name.startswith("step_"):
@@ -39,78 +32,84 @@ def find_latest_checkpoint(checkpoint_dir: str) -> str | None:
                 checkpoints.append((step, str(d)))
             except (ValueError, IndexError):
                 continue
-
     if not checkpoints:
+        # Check if adapter files are directly in the dir
+        if (ckpt_path / "adapter_config.json").exists():
+            return str(ckpt_path)
         return None
-
     checkpoints.sort(key=lambda x: x[0])
     return checkpoints[-1][1]
 
 
-def generate_text(model, tokenizer, prompt: str, max_new_tokens: int = 100) -> str:
-    """Generate text from a prompt."""
+def generate(model, tokenizer, prompt, max_new_tokens=100):
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
             max_new_tokens=max_new_tokens,
-            do_sample=True,
             temperature=0.7,
             top_p=0.9,
             repetition_penalty=1.1,
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id,
         )
-    generated = outputs[0][inputs["input_ids"].shape[1]:]
-    return tokenizer.decode(generated, skip_special_tokens=True)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
-def main():
-    """Test generation with base and LoRA models."""
-    print("Loading tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+# ============================================================
+# Step 1: Test base model
+# ============================================================
+print("=" * 60)
+print("Nirasa-7B Thai Generation Test")
+print("=" * 60)
 
-    # Load base model
-    print(f"Loading base model: {MODEL_NAME}")
-    base_model = AutoModelForCausalLM.from_pretrained(
+print("\nLoading tokenizer...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+print(f"Loading base model: {MODEL_NAME}...")
+base_model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+    trust_remote_code=True,
+)
+base_model.eval()
+
+print("\n--- Base Qwen2.5-7B (no Thai training) ---")
+for prompt in TEST_PROMPTS:
+    output = generate(base_model, tokenizer, prompt)
+    print(f"\nPrompt: {prompt}")
+    print(f"Output: {output[:300]}")
+    print("-" * 50)
+
+# Free memory
+del base_model
+torch.cuda.empty_cache()
+
+# ============================================================
+# Step 2: Test LoRA model
+# ============================================================
+ckpt_path = find_latest_checkpoint(CHECKPOINT_DIR)
+if ckpt_path:
+    print(f"\n\nLoading base model again for LoRA...")
+    lora_base = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
         torch_dtype=torch.bfloat16,
         device_map="auto",
         trust_remote_code=True,
     )
-    base_model.eval()
 
-    # Find and load LoRA checkpoint
-    ckpt_path = find_latest_checkpoint(CHECKPOINT_DIR)
+    print(f"Loading LoRA adapter: {ckpt_path}")
+    lora_model = PeftModel.from_pretrained(lora_base, ckpt_path)
+    lora_model.eval()
 
-    lora_model = None
-    if ckpt_path:
-        print(f"Loading LoRA from: {ckpt_path}")
-        lora_model = PeftModel.from_pretrained(base_model, ckpt_path)
-        lora_model = lora_model.merge_and_unload()
-        lora_model.eval()
-    else:
-        print(f"No checkpoint found in {CHECKPOINT_DIR}, skipping LoRA comparison")
-
-    # Generate with both models
-    print("\n" + "=" * 70)
-    print("Generation Comparison")
-    print("=" * 70)
-
+    print("\n--- Nirasa-7B (LoRA-adapted for Thai) ---")
     for prompt in TEST_PROMPTS:
+        output = generate(lora_model, tokenizer, prompt)
         print(f"\nPrompt: {prompt}")
+        print(f"Output: {output[:300]}")
         print("-" * 50)
+else:
+    print(f"\nNo checkpoint found in {CHECKPOINT_DIR}")
 
-        # Base model
-        base_output = generate_text(base_model, tokenizer, prompt)
-        print(f"  Base:  {base_output[:200]}")
-
-        # LoRA model
-        if lora_model is not None:
-            lora_output = generate_text(lora_model, tokenizer, prompt)
-            print(f"  LoRA:  {lora_output[:200]}")
-
-    print("\n" + "=" * 70)
-    print("Done!")
-
-
-if __name__ == "__main__":
-    main()
+print("\nDone!")
