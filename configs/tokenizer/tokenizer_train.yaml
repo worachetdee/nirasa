@@ -1,0 +1,21 @@
+# Nirasa Thai tokenizer training configuration
+# Usage: python -m nirasa.tokenizer.train_tokenizer --config configs/tokenizer/tokenizer_train.yaml
+
+# Input/Output
+input_dir: data/raw
+model_prefix: data/tokenizer/nirasa_th_sp
+
+# SentencePiece settings
+vocab_size: 32000
+model_type: bpe
+character_coverage: 0.9995
+byte_fallback: true
+split_digits: true
+
+# Normalization
+normalization_rule_name: nfkc
+
+# Training
+num_threads: 4
+shuffle_input_sentence: true
+max_sentence_length: 16384

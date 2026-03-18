@@ -1,0 +1,40 @@
+# Nirasa LoRA fine-tuning configuration
+# Usage: python -m nirasa.training.train --config configs/training/lora_finetune.yaml
+
+# Model
+model_name: Qwen/Qwen2.5-7B
+
+# LoRA
+lora_r: 64
+lora_alpha: 128
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# Training
+learning_rate: 2.0e-4
+warmup_steps: 50
+max_steps: 5000
+batch_size: 2
+gradient_accumulation_steps: 8
+max_grad_norm: 1.0
+weight_decay: 0.01
+
+# Data
+max_seq_len: 512
+data_bin: data/processed/th_wiki_qwen.bin
+data_idx: data/processed/th_wiki_qwen.idx
+
+# Checkpointing
+output_dir: checkpoints/nirasa-7b-th
+save_steps: 100
+log_steps: 10
+
+# Misc
+seed: 42

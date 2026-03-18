@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nirasa"
+version = "0.1.0"
+description = "Nirasa (นิราศ) — Thai Language Model based on Qwen2.5"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Nirasa Contributors"},
+]
+keywords = ["thai", "language-model", "nlp", "qwen", "lora"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.36",
+    "sentencepiece>=0.2",
+    "peft>=0.7",
+    "fastapi>=0.104",
+    "uvicorn>=0.24",
+    "pythainlp",
+    "datasketch>=1.6",
+    "datasets>=2.16",
+    "numpy",
+    "tqdm",
+    "fire",
+    "wandb",
+    "accelerate",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+]
+
+[project.scripts]
+nirasa-train = "nirasa.training.train:main"
+nirasa-eval = "nirasa.eval.run_eval:main"
+nirasa-serve = "nirasa.serving.api_server:main"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nirasa"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
