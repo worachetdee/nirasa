@@ -14,6 +14,9 @@ os.makedirs("data/raw", exist_ok=True)
 
 from datasets import load_dataset
 
+MAX_RETRIES = 3
+RETRY_DELAY = 10  # seconds
+
 
 def save_jsonl(dataset, output_path, text_field="text", max_docs=None, min_len=50):
     """Save dataset to JSONL format."""
@@ -40,16 +43,30 @@ def report_size(path):
     return 0, 0
 
 
-def download_source(name, fn):
+def download_source(name, fn, output_path=None):
+    """Download a data source, skipping if output already exists."""
+    if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+        size_mb = os.path.getsize(output_path) / (1024 * 1024)
+        print(f"\n  SKIP {name} — already exists ({size_mb:.1f} MB)")
+        return
+
     print(f"\n{'='*60}")
     print(f"  {name}")
     print(f"{'='*60}")
-    t0 = time.time()
-    try:
-        fn()
-        print(f"  Time: {time.time()-t0:.0f}s")
-    except Exception as e:
-        print(f"  FAILED: {e}")
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        t0 = time.time()
+        try:
+            fn()
+            print(f"  Time: {time.time()-t0:.0f}s")
+            return
+        except Exception as e:
+            print(f"  FAILED (attempt {attempt}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES:
+                wait = RETRY_DELAY * attempt
+                print(f"  Retrying in {wait}s...")
+                time.sleep(wait)
+    print(f"  GIVING UP on {name} after {MAX_RETRIES} attempts")
 
 
 # =============================================================
@@ -81,10 +98,10 @@ def dl_mangosteen_curated():
     count = save_jsonl(ds, "data/raw/th_mangosteen_curated.jsonl", max_docs=500000)
     report_size("data/raw/th_mangosteen_curated.jsonl")
 
-download_source("[1/14] Thai Wikipedia (CC BY-SA)", dl_wikipedia)
-download_source("[2/14] mC4 Thai (ODC-BY)", dl_mc4)
-download_source("[3/14] Mangosteen Web — cleaned Common Crawl (permissive)", dl_mangosteen_web)
-download_source("[4/14] Mangosteen Curated — CC/public domain (permissive)", dl_mangosteen_curated)
+download_source("[1/14] Thai Wikipedia (CC BY-SA)", dl_wikipedia, "data/raw/th_wiki.jsonl")
+download_source("[2/14] mC4 Thai (ODC-BY)", dl_mc4, "data/raw/th_mc4.jsonl")
+download_source("[3/14] Mangosteen Web — cleaned Common Crawl (permissive)", dl_mangosteen_web, "data/raw/th_mangosteen_web.jsonl")
+download_source("[4/14] Mangosteen Curated — CC/public domain (permissive)", dl_mangosteen_curated, "data/raw/th_mangosteen_curated.jsonl")
 
 
 # =============================================================
@@ -101,12 +118,12 @@ def dl_thai_law():
 
 def dl_thai_gov():
     ds = load_dataset("pythainlp/thaigov-v2-corpus-31032024", split="train")
-    count = save_jsonl(ds, "data/raw/th_gov.jsonl")
+    count = save_jsonl(ds, "data/raw/th_gov.jsonl", text_field="context")
     report_size("data/raw/th_gov.jsonl")
 
 def dl_thai_constitution():
     ds = load_dataset("pythainlp/thai-constitution-corpus", split="train")
-    count = save_jsonl(ds, "data/raw/th_constitution.jsonl")
+    count = save_jsonl(ds, "data/raw/th_constitution.jsonl", text_field="txt")
     report_size("data/raw/th_constitution.jsonl")
 
 def dl_thai_open_data():
@@ -119,11 +136,11 @@ def dl_thai_oldbooks():
     count = save_jsonl(ds, "data/raw/th_oldbooks.jsonl")
     report_size("data/raw/th_oldbooks.jsonl")
 
-download_source("[5/14] Thai Law (public domain)", dl_thai_law)
-download_source("[6/14] Thai Government corpus (public domain)", dl_thai_gov)
-download_source("[7/14] Thai Constitution (public domain)", dl_thai_constitution)
-download_source("[8/14] Thai Open Data (public domain)", dl_thai_open_data)
-download_source("[9/14] Thai Old Books (public domain/CC)", dl_thai_oldbooks)
+download_source("[5/14] Thai Law (public domain)", dl_thai_law, "data/raw/th_law.jsonl")
+download_source("[6/14] Thai Government corpus (public domain)", dl_thai_gov, "data/raw/th_gov.jsonl")
+download_source("[7/14] Thai Constitution (public domain)", dl_thai_constitution, "data/raw/th_constitution.jsonl")
+download_source("[8/14] Thai Open Data (public domain)", dl_thai_open_data, "data/raw/th_opendata.jsonl")
+download_source("[9/14] Thai Old Books (public domain/CC)", dl_thai_oldbooks, "data/raw/th_oldbooks.jsonl")
 
 
 # =============================================================
@@ -145,8 +162,8 @@ def dl_cc100():
     count = save_jsonl(ds, "data/raw/th_cc100.jsonl", max_docs=500000)
     report_size("data/raw/th_cc100.jsonl")
 
-download_source("[10/14] OSCAR Thai — web crawl (CC0 metadata, gated)", dl_oscar)
-download_source("[11/14] CC-100 Thai — deduplicated web (no IP claims)", dl_cc100)
+download_source("[10/14] OSCAR Thai — web crawl (CC0 metadata, gated)", dl_oscar, "data/raw/th_oscar.jsonl")
+download_source("[11/14] CC-100 Thai — deduplicated web (no IP claims)", dl_cc100, "data/raw/th_cc100.jsonl")
 
 
 # =============================================================
@@ -193,9 +210,9 @@ def dl_wongnai():
                 count += 1
     report_size("data/raw/th_wongnai.jsonl")
 
-download_source("[12/14] Wisesight Sentiment — social media (CC0)", dl_wisesight)
-download_source("[13/14] Prachatai-67K — news journalism (Apache 2.0)", dl_prachatai)
-download_source("[14/14] Wongnai Reviews — colloquial/opinion (LGPL-3.0)", dl_wongnai)
+download_source("[12/14] Wisesight Sentiment — social media (CC0)", dl_wisesight, "data/raw/th_wisesight.jsonl")
+download_source("[13/14] Prachatai-67K — news journalism (Apache 2.0)", dl_prachatai, "data/raw/th_prachatai.jsonl")
+download_source("[14/14] Wongnai Reviews — colloquial/opinion (LGPL-3.0)", dl_wongnai, "data/raw/th_wongnai.jsonl")
 
 
 # =============================================================
