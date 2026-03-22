@@ -44,7 +44,7 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 
 ### Phase 4: Full Data Pipeline (In Progress)
 - [x] Clean all 11 datasets (HTML/URL removal, NFKC, Thai ratio filter)
-- [x] Deduplicate (MinHash char 5-grams, threshold 0.8)
+- [ ] Deduplicate (MinHash char 5-grams, threshold 0.8) — bug fixed, needs re-run
 - [ ] Quality filter (length, repetition, Thai ratio)
 - [ ] Tokenize combined corpus with Qwen tokenizer → binary memmap
 - [ ] Back up processed data to Google Drive
