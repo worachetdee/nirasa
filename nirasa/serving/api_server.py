@@ -8,7 +8,7 @@ from typing import AsyncGenerator
 
 import torch
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -86,6 +86,8 @@ class HealthResponse(BaseModel):
 @app.get("/health", response_model=HealthResponse)
 async def health():
     """Health check endpoint."""
+    if _model is None or _tokenizer is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     return HealthResponse(status="ok", model=_model_name)
 
 
@@ -103,7 +105,7 @@ async def chat_completions(request: ChatCompletionRequest):
     global _model, _tokenizer
 
     if _model is None or _tokenizer is None:
-        return {"error": "Model not loaded"}
+        raise HTTPException(status_code=503, detail="Model not loaded")
 
     # Format messages using chat template
     messages = [{"role": m.role, "content": m.content} for m in request.messages]
