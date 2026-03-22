@@ -9,7 +9,7 @@ import os
 import random
 from pathlib import Path
 
-DEDUP_DIR = Path("data/dedup")
+DEDUP_DIR = Path("data/filtered")
 OUTPUT_DIR = Path("data/mlx")
 VALID_RATIO = 0.01  # 1% for validation
 SEED = 42
