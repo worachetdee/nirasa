@@ -43,11 +43,24 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 - **Result: LoRA outputs worse than base model — wiki-only data insufficient**
 
 ### Phase 4: Full Data Pipeline (In Progress)
-- [x] Clean all 11 datasets (HTML/URL removal, NFKC, Thai ratio filter)
+- [x] Clean all 11 datasets (HTML/URL removal, NFKC, BOM removal, Thai ratio filter)
 - [ ] Deduplicate (MinHash char 5-grams, threshold 0.8) — bug fixed, needs re-run
 - [ ] Quality filter (length, repetition, Thai ratio)
 - [ ] Tokenize combined corpus with Qwen tokenizer → binary memmap
 - [ ] Back up processed data to Google Drive
+
+### Bug Fixes & Infrastructure (Completed)
+- [x] Fix BOM character not stripped by clean_text (NFKC doesn't remove U+FEFF)
+- [x] Fix MinHash dedup unreliable with low num_perm (tests now use 128)
+- [x] Fix filter tests using repetitive text that triggered repetition filter
+- [x] Fix API server returning HTTP 200 on errors (now returns 503)
+- [x] Fix health endpoint always returning "ok" even when model not loaded
+- [x] Add serving endpoint tests (health, models, chat completions)
+- [x] Fix training resume: use PeftModel.from_pretrained() instead of get_peft_model() + load_adapter()
+- [x] Fix optimizer/scheduler state not restored on checkpoint resume
+- [x] Align train_colab.py dataset with train.py (manual label shift, +1 token read)
+- [x] Increase max_seq_len from 512 to 2048 (512 caused truncated outputs)
+- [x] Add setuptools package discovery config to pyproject.toml
 
 ---
 
@@ -55,7 +68,7 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 
 ### Phase 5: v3 Training — Full Dataset
 - [ ] Train LoRA (r=64) for 5000 steps on full corpus
-- [ ] Increase seq_len from 512 → 2048 (critical — 512 causes truncated outputs)
+- [x] ~~Increase seq_len from 512 → 2048~~ (done — config and code updated)
 - [ ] Monitor loss curve — expect lower floor than v2 with diverse data
 - [ ] Test generation at step 1000, 2500, 5000
 - [ ] Compare vs base Qwen and vs v2 wiki-only
@@ -64,7 +77,8 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 **Key changes from v2:**
 - ~30x more training data (17.5 GB vs 605 MB filtered)
 - Diverse domains (legal, government, social media, reviews, literature)
-- Longer sequences to fix truncation issue
+- seq_len 2048 (was 512, now fixed)
+- Fixed checkpoint resume (LoRA weights + optimizer/scheduler state)
 
 ### Phase 6: Evaluation & Benchmarking
 - [ ] Run ThaiQA (reading comprehension, char F1)
