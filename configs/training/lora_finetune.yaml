@@ -27,7 +27,7 @@ max_grad_norm: 1.0
 weight_decay: 0.01
 
 # Data
-max_seq_len: 512
+max_seq_len: 2048
 data_bin: data/processed/th_wiki_qwen.bin
 data_idx: data/processed/th_wiki_qwen.idx
 

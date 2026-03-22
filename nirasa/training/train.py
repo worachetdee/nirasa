@@ -119,7 +119,7 @@ def train(
     output_dir: str = "checkpoints/nirasa-7b-th",
     model_name: str = "Qwen/Qwen2.5-7B",
     max_steps: int = 1000,
-    max_seq_len: int = 512,
+    max_seq_len: int = 2048,
     batch_size: int = 2,
     gradient_accumulation_steps: int = 8,
     learning_rate: float = 2e-4,
@@ -183,25 +183,23 @@ def train(
     )
 
     # Apply LoRA
-    lora_config = LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        r=lora_r,
-        lora_alpha=lora_alpha,
-        lora_dropout=lora_dropout,
-        target_modules=[
-            "q_proj", "k_proj", "v_proj", "o_proj",
-            "gate_proj", "up_proj", "down_proj",
-        ],
-    )
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
-
-    # Load LoRA weights if resuming
     if resume_path:
         from peft import PeftModel
         print(f"Loading LoRA weights from {resume_path}")
-        # Re-load as PeftModel from checkpoint
-        model.load_adapter(resume_path, adapter_name="default")
+        model = PeftModel.from_pretrained(model, resume_path)
+    else:
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            lora_dropout=lora_dropout,
+            target_modules=[
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ],
+        )
+        model = get_peft_model(model, lora_config)
+    model.print_trainable_parameters()
 
     # Dataset and dataloader
     print(f"Loading dataset: {data_bin}")
@@ -227,9 +225,18 @@ def train(
 
     scheduler = get_cosine_schedule_with_warmup(optimizer, warmup_steps, max_steps)
 
-    # Fast-forward scheduler if resuming
-    for _ in range(start_step):
-        scheduler.step()
+    # Restore optimizer/scheduler state if resuming
+    if resume_path:
+        state_path = Path(resume_path) / "training_state.pt"
+        if state_path.exists():
+            print(f"Restoring training state from {state_path}")
+            training_state = torch.load(state_path, map_location="cpu", weights_only=True)
+            optimizer.load_state_dict(training_state["optimizer"])
+            scheduler.load_state_dict(training_state["scheduler"])
+        else:
+            print("No training_state.pt found, fast-forwarding scheduler")
+            for _ in range(start_step):
+                scheduler.step()
 
     # Training loop
     model.train()
