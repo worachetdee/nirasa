@@ -6,12 +6,12 @@ Continued pretraining of **Qwen2.5-7B** on large-scale Thai corpora using LoRA, 
 
 ## Highlights
 
-- **Base model**: Qwen2.5-7B (7.7B parameters, bfloat16)
-- **Training**: LoRA (r=64, 2% trainable params) — trainable on a single A100
-- **Data**: 3.7 GB+ Thai text from Wikipedia, mC4, Wisesight, and more
+- **Models**: Nirasa-0.5B (trained) and Nirasa-7B (training in progress)
+- **Base models**: Qwen2.5-0.5B (full fine-tune, MLX) and Qwen2.5-7B (LoRA, PyTorch)
+- **Data**: 11 Thai sources, 543K docs, 407M tokens after cleaning/dedup/filtering
+- **Training**: 0.5B on M4 Max ($0), 7B LoRA on Colab A100 (~$10)
 - **Eval**: ThaiQA, XNLI-th, Wisesight sentiment, perplexity
-- **Cost**: Under $10 on Google Colab Pro
-- **Runs locally**: Inference on M4 Max MacBook or RTX 4090
+- **Runs locally**: 0.5B on any Mac (MLX, 1GB), 7B on M4 Max or RTX 4090
 
 ## Why Nirasa?
 
@@ -143,7 +143,8 @@ nirasa/
 ## Scaling Path
 
 ```
-Nirasa-7B   →  Current. Colab Pro ($10/mo), single A100.
+Nirasa-0.5B →  Done. M4 Max ($0), MLX full fine-tune.
+Nirasa-7B   →  Training. Colab Pro ($10/mo), single A100 LoRA.
 Nirasa-14B  →  Qwen2.5-14B base, 2x A100 (~$500).
 Nirasa-72B  →  Qwen2.5-72B base, 8x H100 (~$5K-10K).
 ```

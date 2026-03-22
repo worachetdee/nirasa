@@ -49,6 +49,14 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 - [x] Tokenize combined corpus with Qwen tokenizer → 407M tokens (1.6 GB binary)
 - [ ] Back up processed data to Google Drive
 
+### Phase 4b: Nirasa-0.5B (MLX on Apple Silicon)
+- [x] Train Qwen2.5-0.5B full fine-tune on M4 Max (5000 steps, MLX)
+- [x] Val loss: 2.148 → 1.946 (9.4% improvement), 13.9M tokens processed
+- [x] Model generates fluent Thai (base model produces garbage)
+- [x] Fuse MLX adapter → HuggingFace format for evaluation
+- [ ] Run evaluation benchmarks (perplexity, Wisesight, ThaiQA, XNLI)
+- [ ] Push to HuggingFace as worachetdee/nirasa-0.5b-th
+
 ### Bug Fixes & Infrastructure (Completed)
 - [x] Fix BOM character not stripped by clean_text (NFKC doesn't remove U+FEFF)
 - [x] Fix MinHash dedup unreliable with low num_perm (tests now use 128)
@@ -66,19 +74,22 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 
 ## Next Steps
 
-### Phase 5: v3 Training — Full Dataset
-- [ ] Train LoRA (r=64) for 5000 steps on full corpus
+### Phase 5: v3 Training — Full Dataset (In Progress)
+- [x] Colab notebook for 7B training (notebooks/train_7b_colab.ipynb)
+- [x] Upload 407M token binary to Google Drive
 - [x] ~~Increase seq_len from 512 → 2048~~ (done — config and code updated)
-- [ ] Monitor loss curve — expect lower floor than v2 with diverse data
+- [ ] Train LoRA (r=64) for 5000 steps on 80GB A100 — **training in progress**
+- [ ] Monitor loss curve — step 10: 11.26, step 20: 8.31 (decreasing)
 - [ ] Test generation at step 1000, 2500, 5000
-- [ ] Compare vs base Qwen and vs v2 wiki-only
-- **Estimated cost:** ~$5-8 (4-6h on Colab Pro A100)
+- [ ] Compare vs base Qwen and vs 0.5B
+- **Estimated time:** ~13h on Colab Pro A100
 
 **Key changes from v2:**
-- ~30x more training data (17.5 GB vs 605 MB filtered)
+- ~30x more training data (17.5 GB raw → 543K docs filtered → 407M tokens)
 - Diverse domains (legal, government, social media, reviews, literature)
 - seq_len 2048 (was 512, now fixed)
 - Fixed checkpoint resume (LoRA weights + optimizer/scheduler state)
+- bf16 precision on 80GB A100 (no quantization needed)
 
 ### Phase 6: Evaluation & Benchmarking
 - [ ] Run ThaiQA (reading comprehension, char F1)
