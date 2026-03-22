@@ -143,7 +143,8 @@ nirasa/
 ## Scaling Path
 
 ```
-Nirasa-0.5B →  Done. M4 Max ($0), MLX full fine-tune.
+Nirasa-0.5B →  Done. M4 Max ($0), MLX full fine-tune. Available in Ollama.
+Nirasa-1.5B →  Planned. M4 Max ($0), best for mobile phones.
 Nirasa-7B   →  Training. Colab Pro ($10/mo), single A100 LoRA.
 Nirasa-14B  →  Qwen2.5-14B base, 2x A100 (~$500).
 Nirasa-72B  →  Qwen2.5-72B base, 8x H100 (~$5K-10K).
