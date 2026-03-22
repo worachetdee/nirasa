@@ -53,8 +53,9 @@ All data sources are either public domain, Creative Commons licensed, or standar
 ### Data Pipeline
 
 ```
-Raw text → NFKC normalize → HTML/URL removal → Thai ratio filter
-        → MinHash dedup (char 5-grams) → Quality filter → Tokenize (Qwen) → Binary
+Raw text → NFKC normalize → BOM removal → HTML/URL removal → Control char removal
+        → Collapse whitespace → Thai ratio filter → MinHash dedup (char 5-grams)
+        → Quality filter (length, repetition, line length) → Tokenize (Qwen) → Binary
 ```
 
 ## Architecture

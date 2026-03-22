@@ -55,6 +55,9 @@ def clean_text(text: str) -> str:
     # NFKC normalization
     text = unicodedata.normalize("NFKC", text)
 
+    # Remove BOM (not stripped by NFKC or control char regex)
+    text = text.replace("\ufeff", "")
+
     # Remove HTML tags
     text = HTML_TAG_RE.sub("", text)
 

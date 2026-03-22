@@ -89,16 +89,17 @@ class TestDedup:
             input_file = os.path.join(tmpdir, "input.jsonl")
             output_file = os.path.join(tmpdir, "output.jsonl")
 
-            base_text = "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย " * 10
-            near_dup = base_text + " เพิ่มเติมเล็กน้อย"
-            different = "เชียงใหม่เป็นจังหวัดทางภาคเหนือของประเทศไทย " * 10
+            # Longer texts needed for reliable MinHash similarity estimation
+            base_text = "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย " * 50
+            near_dup = base_text.replace("เมืองหลวง", "เมืองใหญ่", 1)
+            different = "เชียงใหม่เป็นจังหวัดทางภาคเหนือของประเทศไทย " * 50
 
             with open(input_file, "w", encoding="utf-8") as f:
                 f.write(json.dumps({"text": base_text}, ensure_ascii=False) + "\n")
                 f.write(json.dumps({"text": near_dup}, ensure_ascii=False) + "\n")
                 f.write(json.dumps({"text": different}, ensure_ascii=False) + "\n")
 
-            stats = dedup_file(input_file, output_file, threshold=0.8, num_perm=64)
+            stats = dedup_file(input_file, output_file, threshold=0.8, num_perm=128)
 
             assert stats["output_docs"] < stats["input_docs"]
             assert stats["duplicates_removed"] >= 1
@@ -118,7 +119,7 @@ class TestDedup:
                 for text in texts:
                     f.write(json.dumps({"text": text}, ensure_ascii=False) + "\n")
 
-            stats = dedup_file(input_file, output_file, threshold=0.8, num_perm=64)
+            stats = dedup_file(input_file, output_file, threshold=0.8, num_perm=128)
             assert stats["duplicates_removed"] == 0
 
 
@@ -127,7 +128,12 @@ class TestDedup:
 
 class TestFilter:
     def test_pass_good_document(self):
-        text = "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย " * 10
+        text = (
+            "กรุงเทพมหานครเป็นเมืองหลวงและเมืองที่มีประชากรมากที่สุดของประเทศไทย "
+            "ตั้งอยู่บริเวณที่ราบลุ่มแม่น้ำเจ้าพระยา มีพื้นที่ประมาณหนึ่งพันห้าร้อยตารางกิโลเมตร "
+            "เป็นศูนย์กลางทางเศรษฐกิจและการปกครองของประเทศ "
+            "มีสถานที่ท่องเที่ยวที่มีชื่อเสียงมากมาย เช่น วัดพระแก้ว วัดอรุณ และพระบรมมหาราชวัง"
+        )
         assert filter_document(text, min_len=50) is True
 
     def test_reject_short(self):
@@ -148,7 +154,12 @@ class TestFilter:
 
             with open(input_file, "w", encoding="utf-8") as f:
                 # Good document
-                good = "กรุงเทพมหานครเป็นเมืองหลวง " * 20
+                good = (
+                    "กรุงเทพมหานครเป็นเมืองหลวงและเมืองที่มีประชากรมากที่สุดของประเทศไทย "
+                    "ตั้งอยู่บริเวณที่ราบลุ่มแม่น้ำเจ้าพระยา มีพื้นที่ประมาณหนึ่งพันห้าร้อยตารางกิโลเมตร "
+                    "เป็นศูนย์กลางทางเศรษฐกิจและการปกครองของประเทศ "
+                    "มีสถานที่ท่องเที่ยวที่มีชื่อเสียงมากมาย เช่น วัดพระแก้ว วัดอรุณ และพระบรมมหาราชวัง"
+                )
                 f.write(json.dumps({"text": good}, ensure_ascii=False) + "\n")
                 # Too short
                 f.write(json.dumps({"text": "สั้น"}, ensure_ascii=False) + "\n")

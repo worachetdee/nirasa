@@ -52,6 +52,9 @@ nirasa-train = "nirasa.training.train:main"
 nirasa-eval = "nirasa.eval.run_eval:main"
 nirasa-serve = "nirasa.serving.api_server:main"
 
+[tool.setuptools.packages.find]
+include = ["nirasa*"]
+
 [tool.ruff]
 target-version = "py310"
 line-length = 100
