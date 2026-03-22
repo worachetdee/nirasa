@@ -42,11 +42,11 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 - [x] Test generation vs base Qwen2.5-7B
 - **Result: LoRA outputs worse than base model — wiki-only data insufficient**
 
-### Phase 4: Full Data Pipeline (In Progress)
+### Phase 4: Full Data Pipeline (Complete)
 - [x] Clean all 11 datasets (HTML/URL removal, NFKC, BOM removal, Thai ratio filter)
-- [ ] Deduplicate (MinHash char 5-grams, threshold 0.8) — bug fixed, needs re-run
-- [ ] Quality filter (length, repetition, Thai ratio)
-- [ ] Tokenize combined corpus with Qwen tokenizer → binary memmap
+- [x] Deduplicate (MinHash char 5-grams, threshold 0.8) — 1.7M → 1.55M docs
+- [x] Quality filter (length, repetition, Thai ratio) — 1.55M → 543K docs, 1.8 GB
+- [x] Tokenize combined corpus with Qwen tokenizer → 407M tokens (1.6 GB binary)
 - [ ] Back up processed data to Google Drive
 
 ### Bug Fixes & Infrastructure (Completed)
