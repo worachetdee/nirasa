@@ -139,6 +139,48 @@ print(f'\nChat training done! {(time.time()-start_time_chat)/3600:.1f}h')
 
 ---
 
+## Cell C0: Test Base Model (without chat fine-tuning)
+
+```python
+from peft import PeftModel
+
+del model
+torch.cuda.empty_cache()
+
+base = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME, torch_dtype=torch.bfloat16, device_map='auto', trust_remote_code=True,
+)
+base_lora_path = '/content/drive/MyDrive/nirasa_checkpoints/nirasa-7b-th-v3-base-backup'
+model = PeftModel.from_pretrained(base, base_lora_path)
+model.eval()
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+prompts = [
+    'ประเทศไทยมี',
+    'กรุงเทพมหานครเป็น',
+    'อาหารไทยที่มีชื่อเสียงที่สุดคือ',
+    'ภาษาไทยเป็นภาษาที่',
+]
+
+for prompt in prompts:
+    inputs = tokenizer(prompt, return_tensors='pt').to(model.device)
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=200,
+            temperature=0.7,
+            top_p=0.9,
+            repetition_penalty=1.2,
+            do_sample=True,
+        )
+    text = tokenizer.decode(output[0], skip_special_tokens=True)
+    print(f'\n{"="*60}')
+    print(f'Prompt: {prompt}')
+    print(f'Output: {text}')
+```
+
+---
+
 ## Cell C: Test Generation (FIXED)
 
 ```python
