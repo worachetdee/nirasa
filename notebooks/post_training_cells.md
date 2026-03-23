@@ -139,7 +139,7 @@ print(f'\nChat training done! {(time.time()-start_time_chat)/3600:.1f}h')
 
 ---
 
-## Cell C: Test Generation
+## Cell C: Test Generation (FIXED)
 
 ```python
 model.eval()
@@ -153,8 +153,9 @@ prompts = [
 ]
 
 for prompt in prompts:
-    messages = f'<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n'
-    inputs = tokenizer(messages, return_tensors='pt').to(model.device)
+    messages = [{"role": "user", "content": prompt}]
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    inputs = tokenizer(text, return_tensors='pt').to(model.device)
     with torch.no_grad():
         output = model.generate(
             **inputs,
@@ -164,8 +165,8 @@ for prompt in prompts:
             repetition_penalty=1.2,
             do_sample=True,
         )
-    text = tokenizer.decode(output[0], skip_special_tokens=True)
+    result = tokenizer.decode(output[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
     print(f'\n{"="*60}')
     print(f'Q: {prompt}')
-    print(f'A: {text[len(prompt):].strip()}')
+    print(f'A: {result}')
 ```
