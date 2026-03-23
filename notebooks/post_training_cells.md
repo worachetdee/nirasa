@@ -139,6 +139,34 @@ print(f'\nChat training done! {(time.time()-start_time_chat)/3600:.1f}h')
 
 ---
 
+## Cell D0: Test Raw Qwen (no LoRA — diagnostic)
+
+```python
+del model
+torch.cuda.empty_cache()
+
+raw_base = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME, torch_dtype=torch.bfloat16, device_map='auto', trust_remote_code=True,
+)
+raw_base.eval()
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+prompt = 'ประเทศไทยมี'
+inputs = tokenizer(prompt, return_tensors='pt').to(raw_base.device)
+with torch.no_grad():
+    output = raw_base.generate(
+        **inputs, max_new_tokens=100, temperature=0.7,
+        top_p=0.9, repetition_penalty=1.2, do_sample=True,
+    )
+print('Raw Qwen2.5-7B (no LoRA):')
+print(tokenizer.decode(output[0], skip_special_tokens=True))
+
+del raw_base
+torch.cuda.empty_cache()
+```
+
+---
+
 ## Cell C0: Test Base Model (without chat fine-tuning)
 
 ```python
