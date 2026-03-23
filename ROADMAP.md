@@ -81,8 +81,8 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 - [x] Colab notebook for 7B training (notebooks/train_7b_colab.ipynb)
 - [x] Upload 407M token binary to Google Drive
 - [x] ~~Increase seq_len from 512 → 2048~~ (done — config and code updated)
-- [ ] Train LoRA (r=64) for 5000 steps on 80GB A100 — **training in progress**
-- [ ] Monitor loss curve — step 10: 11.26, step 20: 8.31 (decreasing)
+- [ ] Train LoRA (r=64) for 5000 steps on 80GB A100 — **step 3270/5000, ETA ~5h**
+- [x] Loss curve: 11.26 → 3.39 (step 100) → 2.55 (step 3000) — healthy convergence
 - [ ] Test generation at step 1000, 2500, 5000
 - [ ] Compare vs base Qwen and vs 0.5B
 - **Estimated time:** ~13h on Colab Pro A100
