@@ -50,6 +50,12 @@ Thai is underserved in the open-source LLM space. While Japanese has Swallow, PL
 
 All data sources are either public domain, Creative Commons licensed, or standard web crawl corpora used by major LLMs (GPT, LLaMA, BLOOM, XLM-R). See [Mangosteen](https://github.com/vistec-AI/Mangosteen) by VISTEC and the [PyThaiNLP pretrained datasets collection](https://huggingface.co/collections/pythainlp/datasets-for-pretrained-thai-llm-65db96ab730386b492889a98) for curated sources.
 
+**Instruction tuning data:**
+
+| Source | Type | Samples | License |
+|--------|------|---------|---------|
+| WangchanThaiInstruct | Thai Q&A pairs | 32K | CC BY-SA 4.0 |
+
 ### Data Pipeline
 
 ```

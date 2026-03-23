@@ -56,7 +56,8 @@ Build the best open-source Thai language model, ship it as a **ChatGPT-style web
 - [x] Fuse MLX adapter → HuggingFace format for evaluation
 - [x] Run evaluation benchmarks (perplexity 4.83, Wisesight 29.5% — similar to base)
 - [x] Deploy to Ollama as nirasa:0.5b for local chat
-- [ ] Train Qwen2.5-0.5B-Instruct variant for better chat — **training in progress**
+- [x] Train Qwen2.5-0.5B-Instruct on Thai text data (val loss 2.249 → 2.041)
+- [ ] Train Qwen2.5-0.5B-Instruct on Thai chat data (WangchanThaiInstruct, 32K pairs) — **training in progress**
 - [ ] Train Qwen2.5-1.5B for mobile deployment (sweet spot for phones)
 - [ ] Push to HuggingFace as worachetdee/nirasa-0.5b-th
 
